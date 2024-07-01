@@ -1,16 +1,16 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 
-namespace backend
+namespace backend.Controllers
 {
-    public class GenerosController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class GenerosController : ControllerBase
     {
         private readonly backendContext _context;
 
@@ -19,145 +19,86 @@ namespace backend
             _context = context;
         }
 
-        // GET: Generos
-        public async Task<IActionResult> Index()
+        // GET: api/Generos
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Genero>>> GetGeneros()
         {
-              return _context.Genero != null ? 
-                          View(await _context.Genero.ToListAsync()) :
-                          Problem("Entity set 'backendContext.Genero'  is null.");
+            return await _context.Genero.ToListAsync();
         }
 
-        // GET: Generos/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/Generos/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Genero>> GetGenero(int id)
         {
-            if (id == null || _context.Genero == null)
-            {
-                return NotFound();
-            }
-
-            var genero = await _context.Genero
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (genero == null)
-            {
-                return NotFound();
-            }
-
-            return View(genero);
-        }
-
-        // GET: Generos/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Generos/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion")] Genero genero)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(genero);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(genero);
-        }
-
-        // GET: Generos/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Genero == null)
-            {
-                return NotFound();
-            }
-
             var genero = await _context.Genero.FindAsync(id);
+
             if (genero == null)
             {
                 return NotFound();
             }
-            return View(genero);
+
+            return genero;
         }
 
-        // POST: Generos/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Generos
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Descripcion")] Genero genero)
+        public async Task<ActionResult<Genero>> PostGenero(Genero genero)
+        {
+            _context.Genero.Add(genero);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetGenero", new { id = genero.Id }, genero);
+        }
+
+        // PUT: api/Generos/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutGenero(int id, Genero genero)
         {
             if (id != genero.Id)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            if (ModelState.IsValid)
+            _context.Entry(genero).State = EntityState.Modified;
+
+            try
             {
-                try
-                {
-                    _context.Update(genero);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!GeneroExists(genero.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
             }
-            return View(genero);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!GeneroExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
-        // GET: Generos/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // DELETE: api/Generos/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteGenero(int id)
         {
-            if (id == null || _context.Genero == null)
-            {
-                return NotFound();
-            }
-
-            var genero = await _context.Genero
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var genero = await _context.Genero.FindAsync(id);
             if (genero == null)
             {
                 return NotFound();
             }
 
-            return View(genero);
-        }
-
-        // POST: Generos/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Genero == null)
-            {
-                return Problem("Entity set 'backendContext.Genero'  is null.");
-            }
-            var genero = await _context.Genero.FindAsync(id);
-            if (genero != null)
-            {
-                _context.Genero.Remove(genero);
-            }
-            
+            _context.Genero.Remove(genero);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return NoContent();
         }
 
         private bool GeneroExists(int id)
         {
-          return (_context.Genero?.Any(e => e.Id == id)).GetValueOrDefault();
+            return _context.Genero.Any(e => e.Id == id);
         }
     }
 }
