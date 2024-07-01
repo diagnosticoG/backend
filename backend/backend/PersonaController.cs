@@ -21,9 +21,22 @@ namespace backend.Controllers
 
         // GET: api/Persona
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Persona>>> GetPersonas()
+        public async Task<ActionResult<IEnumerable<object>>> GetPersonas()
         {
-            return await _context.Persona.ToListAsync();
+            var personas = await _context.Persona
+                .Select(p => new {
+                    Id = p.Id,
+                    Cedula = p.Cedula,
+                    Nombre = p.Nombre,
+                    Apellido = p.Apellido,
+                    Fecha_Nacimiento = p.Fecha_Nacimiento,
+                    Genero_Nombre = p.Genero.Nombre,
+                    Genero_Id = p.Genero_Id,
+                    Estado_Civil = p.Estado_Civil
+                })
+                .ToListAsync();
+
+            return Ok(personas);
         }
 
         // GET: api/Persona/5

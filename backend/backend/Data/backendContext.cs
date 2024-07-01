@@ -17,5 +17,15 @@ namespace backend.Data
         public DbSet<backend.Models.Genero> Genero { get; set; } = default!;
 
         public DbSet<backend.Models.Persona>? Persona { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Persona>()
+                .HasOne(p => p.Genero)
+                .WithMany()
+                .HasForeignKey(p => p.Genero_Id);
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
