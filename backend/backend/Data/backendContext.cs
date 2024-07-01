@@ -15,5 +15,7 @@ namespace backend.Data
         }
 
         public DbSet<backend.Models.Genero> Genero { get; set; } = default!;
+
+        public DbSet<backend.Models.Persona>? Persona { get; set; }
     }
 }
