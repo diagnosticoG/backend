@@ -84,6 +84,17 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGenero(int id)
         {
+            var personas = await _context.Persona
+                .Where(p => p.Genero_Id == id)
+                .ToListAsync();
+
+            foreach (var persona in personas)
+            {
+                persona.Genero_Id = null;
+            }
+
+            await _context.SaveChangesAsync();
+
             var genero = await _context.Genero.FindAsync(id);
             if (genero == null)
             {
@@ -91,7 +102,22 @@ namespace backend.Controllers
             }
 
             _context.Genero.Remove(genero);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!GeneroExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return NoContent();
         }
